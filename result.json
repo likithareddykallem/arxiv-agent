@@ -1,0 +1,185 @@
+{
+  "input_query": "crispr prediction method papers from 2024-2025",
+  "total_links": 10,
+  "query_trace": [
+    {
+      "round": 1,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "crispr prediction method papers",
+      "query_intent": "strict",
+      "expanded_search_query": "crispr prediction method papers",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 24,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 2,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "crispr gene editing prediction",
+      "query_intent": "broad",
+      "expanded_search_query": "crispr gene editing prediction",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 44,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 3,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "crispr gene editing prediction algorithm",
+      "query_intent": "strict",
+      "expanded_search_query": "crispr gene editing prediction algorithm",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 53,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 4,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "crispr design prediction",
+      "query_intent": "broad",
+      "expanded_search_query": "crispr design prediction",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 66,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 5,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "designing crispr gene editing protocols",
+      "query_intent": "strict",
+      "expanded_search_query": "designing crispr gene editing protocols",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 74,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 6,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "predicting crispr off-targets",
+      "query_intent": "broad",
+      "expanded_search_query": "predicting crispr off-targets",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 84,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 7,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "predicting crispr off-target effects",
+      "query_intent": "strict",
+      "expanded_search_query": "predicting crispr off-target effects",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 95,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 8,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "crispr design optimization",
+      "query_intent": "broad",
+      "expanded_search_query": "crispr design optimization",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 112,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "round": 9,
+      "input_query": "crispr prediction method papers from 2024-2025",
+      "planner_query": "crispr prediction method papers",
+      "round_query": "optimizing crispr gene editing efficacy",
+      "query_intent": "strict",
+      "expanded_search_query": "optimizing crispr gene editing efficacy",
+      "per_source_fetch_budget": 12,
+      "papers_found_this_round": 24,
+      "unique_papers_so_far": 117,
+      "timeline_filter_start": "2024-01-01",
+      "timeline_filter_end": "2025-12-31"
+    },
+    {
+      "stage": "post_aggregation_filtering",
+      "papers_after_timeline_filter": 58,
+      "papers_after_token_semantic_filter": 10,
+      "strict_focus_mode": true,
+      "semantic_candidates": 40,
+      "removed_by_focus_or_threshold": 30,
+      "fallback_added": 10,
+      "minimum_output_links_target": 10
+    }
+  ],
+  "links": [
+    {
+      "paper": "Artificial Intelligence for CRISPR Guide RNA Design: Explainable Models and Off-Target Safety",
+      "url": "https://arxiv.org/abs/2508.20130v1",
+      "published_date": "2025-08-26"
+    },
+    {
+      "paper": "Gene-DML: Dual-Pathway Multi-Level Discrimination for Gene Expression Prediction from Histopathology Images",
+      "url": "https://arxiv.org/abs/2507.14670v3",
+      "published_date": "2025-07-19"
+    },
+    {
+      "paper": "Guide RNA library representation results in gene essentiality prediction bias in genome-wide CRISPR screens",
+      "url": "https://www.biorxiv.org/content/10.1101/2025.09.07.673082v1",
+      "published_date": "2025-01-01"
+    },
+    {
+      "paper": "Risk Prediction of RNA Off-Targets of CRISPR Base Editors in Tissue-Specific Transcriptomes Using Language Models",
+      "url": "https://www.biorxiv.org/content/10.1101/2025.01.19.633823v2",
+      "published_date": "2025-01-01"
+    },
+    {
+      "paper": "CRISMER: A transformer-based Interpretable Deep Learning Approach for Genome-wide CRISPR Cas-9 Off-Target Prediction and Optimization",
+      "url": "https://www.biorxiv.org/content/10.1101/2025.05.03.652008v1",
+      "published_date": "2025-01-01"
+    },
+    {
+      "paper": "CRISPR-HAWK: Haplotype- and Variant-aware guide design toolkit for CRISPR-Cas",
+      "url": "https://www.biorxiv.org/content/10.64898/2025.12.27.696698v1",
+      "published_date": "2025-01-01"
+    },
+    {
+      "paper": "DeepFM-Crispr: Prediction of CRISPR On-Target Effects via Deep Learning",
+      "url": "https://arxiv.org/abs/2409.05938v1",
+      "published_date": "2024-09-09"
+    },
+    {
+      "paper": "Gene and RNA Editing: Methods, Enabling Technologies, Applications, and Future Directions",
+      "url": "https://arxiv.org/abs/2409.09057v1",
+      "published_date": "2024-09-01"
+    },
+    {
+      "paper": "CRISPR-GPT for Agentic Automation of Gene-editing Experiments",
+      "url": "https://arxiv.org/abs/2404.18021v2",
+      "published_date": "2024-04-27"
+    },
+    {
+      "paper": "CRISPR: Ensemble Model",
+      "url": "https://arxiv.org/abs/2403.03018v1",
+      "published_date": "2024-03-05"
+    }
+  ]
+}

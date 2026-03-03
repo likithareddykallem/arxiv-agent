@@ -8,44 +8,7 @@ import ollama
 
 MODEL_NAME = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 _RESOLVED_MODEL = None
-_LAST_LLM_ERROR = None
-
-
-FIELD_GROUPS = {
-    "protac": ["target_protein", "e3_ligase", "warhead"],
-    "linker": ["linker_type", "linker_length", "functional_groups", "linker_attachment_site"],
-    "assay": ["assay_type", "degradation_dc50", "degradation_dmax", "cell_line"],
-    "chemistry": ["smiles", "scaffold", "substituents"],
-}
-
-
-def infer_target_fields(query):
-    q = (query or "").lower()
-    fields = []
-
-    if "protac" in q or "degrader" in q:
-        fields.extend(FIELD_GROUPS["protac"])
-    if any(k in q for k in ("linker", "spacer", "peg", "tether")):
-        fields.extend(FIELD_GROUPS["linker"])
-    if any(k in q for k in ("dc50", "dmax", "assay", "activity", "potency", "cell")):
-        fields.extend(FIELD_GROUPS["assay"])
-    if any(k in q for k in ("smiles", "chem", "scaffold", "substituent", "compound")):
-        fields.extend(FIELD_GROUPS["chemistry"])
-
-    if not fields:
-        fields = ["main_entities", "methods", "key_findings"]
-
-    # Keep order, remove duplicates.
-    dedup = []
-    seen = set()
-    for field in fields:
-        if field not in seen:
-            seen.add(field)
-            dedup.append(field)
-
-    # Always include evidence context.
-    dedup.append("context")
-    return dedup
+_SEMANTIC_CACHE = {}
 
 
 def _resolve_model_name():
@@ -70,7 +33,6 @@ def _resolve_model_name():
     for candidate in fallbacks:
         if candidate in installed:
             _RESOLVED_MODEL = candidate
-            print(f"LLM Model fallback: '{preferred}' not found, using '{candidate}'.")
             return _RESOLVED_MODEL
 
     _RESOLVED_MODEL = preferred
@@ -82,7 +44,6 @@ def parse_llm_json(content):
         return None
 
     candidates = []
-
     fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", content, flags=re.IGNORECASE)
     if fence_match:
         candidates.append(fence_match.group(1).strip())
@@ -107,70 +68,118 @@ def parse_llm_json(content):
                     return parsed
             except Exception:
                 continue
-
     return None
 
 
-def normalize_result(raw_result, target_fields):
-    if not isinstance(raw_result, dict):
-        return None
+def generate_search_queries_with_intents(query, max_queries_per_intent=6):
+    base = (query or "").strip()
+    if not base:
+        return {"broad_queries": [], "strict_queries": []}
 
-    normalized = {}
-    for field in target_fields:
-        value = raw_result.get(field, "Not mentioned")
-        if isinstance(value, (list, tuple, set)):
-            value = ", ".join(str(v).strip() for v in value if str(v).strip())
-        value = str(value).strip() if value is not None else "Not mentioned"
-        normalized[field] = value if value else "Not mentioned"
-
-    return normalized
-
-
-def has_meaningful_fields(row):
-    if not row:
-        return False
-    for key, value in row.items():
-        if key == "context":
-            continue
-        if str(value).strip().lower() != "not mentioned":
-            return True
-    return False
-
-
-def extract_structured_info(text_chunk, query, target_fields):
-    fields_json = ",\n  ".join(f"\"{field}\": \"...\"" for field in target_fields)
     prompt = f"""
-You are a strict scientific information extraction engine.
+You are a scientific literature search planner.
 
-TASK:
-- Extract only information explicitly present in the text and relevant to query: "{query}".
-- Return exactly these fields as JSON keys:
-{", ".join(target_fields)}
-- If a field is not explicitly present, return "Not mentioned".
-- Do not infer or hallucinate.
+User query:
+"{base}"
+
+Generate two sets of search queries for arXiv/bioRxiv:
+1) broad_queries: maximize recall with synonyms and neighboring terms.
+2) strict_queries: maximize precision and stay tightly on intent.
+
+Rules:
+- Each query should be short (4 to 14 words).
+- Do not include numbering or explanations.
+- Do not include timeline constraints, explicit years, year ranges, or date words in the queries (timeline is handled in a separate step).
+- Return JSON only:
+{{
+  "broad_queries": ["..."],
+  "strict_queries": ["..."]
+}}
+"""
+    try:
+        model_name = _resolve_model_name()
+        response = ollama.chat(model=model_name, messages=[{"role": "user", "content": prompt}])
+        parsed = parse_llm_json(response.get("message", {}).get("content", ""))
+        if isinstance(parsed, dict):
+            broad = parsed.get("broad_queries")
+            strict = parsed.get("strict_queries")
+
+            def _clean(items):
+                if not isinstance(items, list):
+                    return []
+                out = []
+                seen = set()
+                for it in items:
+                    q = str(it).strip()
+                    if not q:
+                        continue
+                    # Strip accidental timeline fragments from generated queries.
+                    q = re.sub(r"\b(?:between\s+)?(19|20)\d{2}\s*(?:-|to|and)\s*(19|20)\d{2}\b", " ", q, flags=re.IGNORECASE)
+                    q = re.sub(r"\b(19|20)\d{2}\b", " ", q)
+                    q = re.sub(r"\b(from|between|to|during|in)\b", " ", q, flags=re.IGNORECASE)
+                    q = re.sub(r"\s+", " ", q).strip(" ,.-")
+                    if not q:
+                        continue
+                    key = q.lower()
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    out.append(q)
+                return out[:max_queries_per_intent]
+
+            broad_clean = _clean(broad)
+            strict_clean = _clean(strict)
+            if base.lower() not in {q.lower() for q in broad_clean + strict_clean}:
+                strict_clean.insert(0, base)
+            return {"broad_queries": broad_clean, "strict_queries": strict_clean}
+    except Exception:
+        pass
+
+    fallback = [base, f"{base} review", f"{base} analysis"]
+    return {"broad_queries": fallback[:max_queries_per_intent], "strict_queries": [base]}
+
+
+def semantic_relevance_score(query, title, abstract):
+    key = (str(query).strip().lower(), str(title).strip().lower(), str(abstract).strip().lower())
+    if key in _SEMANTIC_CACHE:
+        return _SEMANTIC_CACHE[key]
+
+    prompt = f"""
+You are a strict scientific relevance scorer.
+
+User query:
+"{query}"
+
+Paper:
+Title: "{title}"
+Abstract: "{abstract}"
 
 Return JSON only:
 {{
-  {fields_json}
+  "score": 0.0,
+  "primary_focus": false,
+  "reason": "short reason"
 }}
-
-Text:
-{text_chunk}
 """
-
     try:
         model_name = _resolve_model_name()
-        response = ollama.chat(
-            model=model_name,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = response.get("message", {}).get("content", "")
-        parsed = parse_llm_json(content)
-        return normalize_result(parsed, target_fields)
-    except Exception as e:
-        global _LAST_LLM_ERROR
-        err_msg = str(e)
-        if err_msg != _LAST_LLM_ERROR:
-            print("LLM Error:", e)
-            _LAST_LLM_ERROR = err_msg
-        return None
+        response = ollama.chat(model=model_name, messages=[{"role": "user", "content": prompt}])
+        parsed = parse_llm_json(response.get("message", {}).get("content", ""))
+        if isinstance(parsed, dict):
+            try:
+                score = float(parsed.get("score", 0.0))
+            except Exception:
+                score = 0.0
+            result = {
+                "score": max(0.0, min(1.0, round(score, 4))),
+                "primary_focus": bool(parsed.get("primary_focus", False)),
+                "reason": str(parsed.get("reason", "")).strip()[:160],
+            }
+            _SEMANTIC_CACHE[key] = result
+            return result
+    except Exception:
+        pass
+
+    result = {"score": 0.0, "primary_focus": False, "reason": "semantic scorer unavailable"}
+    _SEMANTIC_CACHE[key] = result
+    return result
